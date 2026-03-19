@@ -1,3 +1,89 @@
+CLASS lhc_item DEFINITION INHERITING FROM cl_abap_behavior_handler.
+
+  PRIVATE SECTION.
+
+    METHODS validateFlightDate FOR VALIDATE ON SAVE
+      IMPORTING keys FOR Item~validateFlightDate.
+    METHODS determineTravelDates FOR DETERMINE ON SAVE
+      IMPORTING keys FOR Item~determineTravelDates.
+
+ENDCLASS.
+
+CLASS lhc_item IMPLEMENTATION.
+
+  METHOD validateFlightDate.
+    CONSTANTS c_area TYPE string VALUE `FLIGHTDATE`.
+
+    READ ENTITIES OF z7409_r_travel IN LOCAL MODE
+      ENTITY Item
+      FIELDS ( AgencyId TravelId FlightDate )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(items).
+
+    LOOP AT items ASSIGNING FIELD-SYMBOL(<item>).
+      INSERT VALUE #(
+        %tky = <item>-%tky
+        %state_area = c_area
+      ) INTO TABLE reported-item.
+
+      IF <item>-FlightDate IS INITIAL.
+        INSERT VALUE #( %tky = <item>-%tky ) INTO TABLE failed-item.
+        INSERT VALUE #(
+          %tky = <item>-%tky
+          %msg = NEW /lrn/cm_s4d437( /lrn/cm_s4d437=>field_empty )
+          %element-FlightDate = if_abap_behv=>mk-on
+          %state_area = c_area
+          %path-travel = CORRESPONDING #( <item> )
+        ) INTO TABLE reported-item.
+      ELSEIF <item>-FlightDate < cl_abap_context_info=>get_system_date( ).
+        INSERT VALUE #( %tky = <item>-%tky ) INTO TABLE failed-item.
+        INSERT VALUE #(
+          %tky = <item>-%tky
+          %msg = NEW /lrn/cm_s4d437( textid = /lrn/cm_s4d437=>flight_date_past )
+          %element-FlightDate = if_abap_behv=>mk-on
+          %state_area = c_area
+          %path-travel = CORRESPONDING #( <item> )
+        ) INTO TABLE reported-item.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD determineTravelDates.
+    READ ENTITIES OF Z7409_R_Travel IN LOCAL MODE
+      ENTITY Item
+      FIELDS ( FlightDate )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(items)
+      BY \_Travel
+      FIELDS ( BeginDate EndDate )
+      WITH CORRESPONDING #( keys )
+      RESULT DATA(travels)
+      LINK DATA(link).
+
+    LOOP AT items ASSIGNING FIELD-SYMBOL(<item>).
+      ASSIGN travels[ KEY id
+        %tky = link[ KEY id source-%tky = <item>-%tky ]-target-%tky
+      ] TO FIELD-SYMBOL(<travel>).
+
+      IF <travel>-EndDate < <item>-FlightDate.
+        <travel>-EndDate = <item>-FlightDate.
+      ENDIF.
+
+      IF <item>-FlightDate > cl_abap_context_info=>get_system_date( )
+      AND <item>-FlightDate < <travel>-BeginDate.
+        <travel>-BeginDate = <item>-FlightDate.
+      ENDIF.
+    ENDLOOP.
+
+    MODIFY ENTITIES OF Z7409_R_Travel  IN LOCAL MODE
+      ENTITY Travel
+      UPDATE
+      FIELDS ( BeginDate EndDate )
+      WITH CORRESPONDING #( travels ).
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS lhc_travel DEFINITION INHERITING FROM cl_abap_behavior_handler.
   PRIVATE SECTION.
 
@@ -288,7 +374,8 @@ CLASS lhc_travel IMPLEMENTATION.
         AND <travel>-EndDate < cl_abap_context_info=>get_system_date( )
       ).
         <result>-%update = if_abap_behv=>fc-o-disabled.
-        <result>-%action-cancel_travel = if_abap_behv=>fc-o-disabled.
+        <result>-%features-%update = if_abap_behv=>fc-o-disabled.
+        <result>-%action-Edit = if_abap_behv=>fc-o-disabled.
       ELSE.
         <result>-%update = if_abap_behv=>fc-o-enabled.
         <result>-%action-cancel_travel = if_abap_behv=>fc-o-enabled.

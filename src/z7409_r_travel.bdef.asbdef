@@ -12,13 +12,11 @@ authorization master ( instance )
 etag master LocChangedAt
 early numbering
 {
-  association _TravelItem { create; with draft; }
-
   create ( authorization : global );
   update ( features : instance );
   delete;
 
-  draft action Edit;
+  draft action ( features : instance ) Edit;
   draft action Activate optimized;
   draft action Discard;
   draft action Resume;
@@ -28,6 +26,7 @@ early numbering
     validation validateBeginDate;
     validation validateEndDate;
     validation validateDateSequence;
+    validation Item~validateFlightDate;
   }
 
   action ( features : instance ) cancel_travel;
@@ -81,6 +80,8 @@ early numbering
       ChangedBy  = changed_by;
       LocChangedAt = loc_changed_at;
     }
+
+  association _TravelItem { create; with draft; }
 }
 
 define behavior for Z7409_R_TravelItem alias Item
@@ -90,32 +91,34 @@ authorization dependent by _Travel
 lock dependent by _Travel
 etag master LocChangedAt
 {
-    association _Travel { with draft; }
+  update;
+  delete;
 
-	  update;
-	  delete;
+  field ( readonly, numbering : managed )
+  ItemUuid;
 
-	  field ( readonly, numbering : managed )
-	  ItemUuid;
-	
-	  field ( readonly )
-	  AgencyId,
-	  TravelId;
-	
-	  mapping for z7409_tritem corresponding
-	   {
-	     ItemUuid           = item_uuid;
-	     AgencyId           = agency_id;
-	     TravelId           = travel_id;
-	     CarrierId          = carrier_id;
-	     ConnectionId       = connection_id;
-	     FlightDate         = flight_date;
-	     BookingId          = booking_id;
-	     PassengerFirstName = passenger_first_name;
-	     PassengerLastName  = passenger_last_name;
-	     ChangedAt          = changed_at;
-	     ChangedBy          = changed_by;
-	     LocChangedAt       = loc_changed_at;
-	   }
-	
+  field ( readonly )
+  AgencyId,
+  TravelId;
+
+  validation validateFlightDate on save { create; field FlightDate; }
+  determination determineTravelDates on save { field FlightDate; }
+
+  mapping for z7409_tritem corresponding
+   {
+     ItemUuid           = item_uuid;
+     AgencyId           = agency_id;
+     TravelId           = travel_id;
+     CarrierId          = carrier_id;
+     ConnectionId       = connection_id;
+     FlightDate         = flight_date;
+     BookingId          = booking_id;
+     PassengerFirstName = passenger_first_name;
+     PassengerLastName  = passenger_last_name;
+     ChangedAt          = changed_at;
+     ChangedBy          = changed_by;
+     LocChangedAt       = loc_changed_at;
+   }
+
+  association _Travel { with draft; }
 }
