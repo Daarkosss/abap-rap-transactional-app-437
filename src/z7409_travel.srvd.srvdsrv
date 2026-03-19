@@ -1,0 +1,5 @@
+@EndUserText.label: 'Flight Data Service Definition'
+define service Z7409_TRAVEL {
+  expose Z7409_C_Travel;
+  expose Z7409_C_TravelItem;
+}
