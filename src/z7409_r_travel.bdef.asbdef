@@ -11,6 +11,7 @@ total etag ChangedAt
 authorization master ( instance )
 etag master LocChangedAt
 early numbering
+with additional save
 {
   create ( authorization : global );
   update ( features : instance );
@@ -31,6 +32,7 @@ early numbering
   }
 
   action ( features : instance ) cancel_travel;
+  event TravelCreated;
 
   validation validateDescription on save { create; field Description; }
   validation validateCustomer on save { create; update; field CustomerId; }

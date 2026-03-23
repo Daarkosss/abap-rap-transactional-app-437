@@ -51,6 +51,11 @@ CLASS lsc_z7409_r_travel IMPLEMENTATION.
         ) INTO TABLE reported-item.
       ENDIF.
     ENDLOOP.
+
+    IF create-travel IS NOT INITIAL.
+      RAISE ENTITY EVENT z7409_r_travel~TravelCreated
+        FROM CORRESPONDING #( create-travel ).
+    ENDIF.
   ENDMETHOD.
 
   METHOD map_message.
