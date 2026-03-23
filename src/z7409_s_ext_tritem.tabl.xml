@@ -6,6 +6,7 @@
     <TABNAME>Z7409_S_EXT_TRITEM</TABNAME>
     <DDLANGUAGE>E</DDLANGUAGE>
     <TABCLASS>INTTAB</TABCLASS>
+    <LANGDEP>X</LANGDEP>
     <DDTEXT>Extension Include Structure for Travel Items</DDTEXT>
     <MASTERLANG>E</MASTERLANG>
     <EXCLASS>3</EXCLASS>
@@ -20,6 +21,14 @@
      <DATATYPE>CHAR</DATATYPE>
      <LENG>000001</LENG>
      <MASK>  CHAR</MASK>
+    </DD03P>
+    <DD03P>
+     <FIELDNAME>.INCLU--AP</FIELDNAME>
+     <ADMINFIELD>0</ADMINFIELD>
+     <PRECFIELD>Z7409X_S_TRITEM_CLASS</PRECFIELD>
+     <MASK>      S</MASK>
+     <DDTEXT>Extend Travel Item with Booking Class</DDTEXT>
+     <COMPTYPE>S</COMPTYPE>
     </DD03P>
    </DD03P_TABLE>
   </asx:values>
