@@ -54,7 +54,13 @@ CLASS lsc_z7409_r_travel IMPLEMENTATION.
 
     IF create-travel IS NOT INITIAL.
       RAISE ENTITY EVENT z7409_r_travel~TravelCreated
-        FROM CORRESPONDING #( create-travel ).
+        FROM VALUE #(
+          FOR <new_travel> IN create-travel (
+            AgencyId = <new_travel>-AgencyId
+            TravelId = <new_travel>-TravelId
+            origin   = 'Z7409_R_TRAVEL'
+          )
+        ).
     ENDIF.
   ENDMETHOD.
 

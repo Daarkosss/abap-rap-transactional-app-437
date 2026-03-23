@@ -13,20 +13,11 @@ ENDCLASS.
 CLASS lcl_handler IMPLEMENTATION.
 
   METHOD on_travel_created.
-    DATA log TYPE TABLE FOR CREATE /lrn/437_i_travellog.
-    LOOP AT new_travels ASSIGNING FIELD-SYMBOL(<travel>).
-      INSERT VALUE #(
-        AgencyID = <travel>-AgencyId
-        TravelID = <travel>-TravelId
-        Origin   = 'Z7409_R_TRAVEL'
-      ) INTO TABLE log.
-    ENDLOOP.
-
     MODIFY ENTITIES OF /LRN/437_I_TravelLog
       ENTITY TravelLog
       CREATE AUTO FILL CID
       FIELDS ( AgencyID TravelID Origin )
-      WITH log.
+      WITH CORRESPONDING #( new_travels ).
   ENDMETHOD.
 
 ENDCLASS.

@@ -32,7 +32,7 @@ with additional save
   }
 
   action ( features : instance ) cancel_travel;
-  event TravelCreated;
+  event TravelCreated parameter Z7409_A_Event;
 
   validation validateDescription on save { create; field Description; }
   validation validateCustomer on save { create; update; field CustomerId; }
