@@ -17,7 +17,7 @@ CLASS lsc_z7409_r_travel IMPLEMENTATION.
 
   METHOD save_modified.
     DATA msg TYPE symsg.
-    DATA(model) = NEW /lrn/cl_s4d437_tritem( 'Z7409_TRITEM' ).
+    DATA(model) = NEW z7409cl_s4d437_tritem( 'Z7409_TRITEM' ).
 
     LOOP AT delete-item ASSIGNING FIELD-SYMBOL(<item_d>).
       msg = model->delete_item( i_uuid = <item_d>-itemuuid ).
@@ -328,18 +328,26 @@ CLASS lhc_travel IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD validateBeginDate.
+    CONSTANTS c_area TYPE string VALUE 'START_DATE'.
+
     READ ENTITIES OF z7409_r_travel IN LOCAL MODE
       ENTITY Travel
       ALL FIELDS WITH CORRESPONDING #( keys )
       RESULT DATA(travels).
 
     LOOP AT travels ASSIGNING FIELD-SYMBOL(<travel>).
+      INSERT VALUE #(
+        %tky = <travel>-%tky
+        %state_area = c_area
+      ) INTO TABLE reported-travel.
+
       IF <travel>-BeginDate IS INITIAL.
         INSERT VALUE #( %tky = <travel>-%tky ) INTO TABLE failed-travel.
         INSERT VALUE #(
           %tky = <travel>-%tky
           %msg = NEW /lrn/cm_s4d437( /lrn/cm_s4d437=>field_empty )
           %element-BeginDate = if_abap_behv=>mk-on
+          %state_area = c_area
         ) INTO TABLE reported-travel.
       ELSEIF <travel>-BeginDate < cl_abap_context_info=>get_system_date( ).
         INSERT VALUE #( %tky = <travel>-%tky ) INTO TABLE failed-travel.
@@ -347,24 +355,33 @@ CLASS lhc_travel IMPLEMENTATION.
           %tky = <travel>-%tky
           %msg = NEW /lrn/cm_s4d437( textid = /lrn/cm_s4d437=>begin_date_past )
           %element-BeginDate = if_abap_behv=>mk-on
+          %state_area = c_area
         ) INTO TABLE reported-travel.
       ENDIF.
     ENDLOOP.
   ENDMETHOD.
 
   METHOD validateEndDate.
+    CONSTANTS c_area TYPE string VALUE 'END_DATE'.
+
     READ ENTITIES OF z7409_r_travel IN LOCAL MODE
       ENTITY Travel
       ALL FIELDS WITH CORRESPONDING #( keys )
       RESULT DATA(travels).
 
     LOOP AT travels ASSIGNING FIELD-SYMBOL(<travel>).
+      INSERT VALUE #(
+        %tky = <travel>-%tky
+        %state_area = c_area
+      ) INTO TABLE reported-travel.
+
       IF <travel>-EndDate IS INITIAL.
         INSERT VALUE #( %tky = <travel>-%tky ) INTO TABLE failed-travel.
         INSERT VALUE #(
           %tky = <travel>-%tky
           %msg = NEW /lrn/cm_s4d437( /lrn/cm_s4d437=>field_empty )
           %element-EndDate = if_abap_behv=>mk-on
+          %state_area = c_area
         ) INTO TABLE reported-travel.
       ELSEIF <travel>-EndDate < cl_abap_context_info=>get_system_date( ).
         INSERT VALUE #( %tky = <travel>-%tky ) INTO TABLE failed-travel.
@@ -372,18 +389,26 @@ CLASS lhc_travel IMPLEMENTATION.
           %tky = <travel>-%tky
           %msg = NEW /lrn/cm_s4d437( textid = /lrn/cm_s4d437=>end_date_past )
           %element-EndDate = if_abap_behv=>mk-on
+          %state_area = c_area
         ) INTO TABLE reported-travel.
       ENDIF.
     ENDLOOP.
   ENDMETHOD.
 
   METHOD validateDateSequence.
+    CONSTANTS c_area TYPE string VALUE 'DATE_SEQ'.
+
     READ ENTITIES OF z7409_r_travel IN LOCAL MODE
       ENTITY Travel
       ALL FIELDS WITH CORRESPONDING #( keys )
       RESULT DATA(travels).
 
     LOOP AT travels ASSIGNING FIELD-SYMBOL(<travel>).
+      INSERT VALUE #(
+        %tky = <travel>-%tky
+        %state_area = c_area
+      ) INTO TABLE reported-travel.
+
       IF <travel>-EndDate < <travel>-BeginDate.
         INSERT VALUE #( %tky = <travel>-%tky ) INTO TABLE failed-travel.
         INSERT VALUE #(
@@ -393,6 +418,7 @@ CLASS lhc_travel IMPLEMENTATION.
             BeginDate = if_abap_behv=>mk-on
             EndDate = if_abap_behv=>mk-on
           )
+          %state_area = c_area
         ) INTO TABLE reported-travel.
       ENDIF.
     ENDLOOP.
